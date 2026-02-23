@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Meu Caixa</title>
-    <link rel="stylesheet" href="style.css?v=20">
+    <link rel="stylesheet" href="style.css?v=21">
 </head>
 <body>
     <div class="app">
@@ -58,6 +58,19 @@
         </div>
     </div>
 
-    <script src="dashboard.js?v=20"></script>
+    <div id="modalEdit" class="modal">
+        <div class="modal-content">
+            <h3>Editar Lançamento</h3>
+            <input type="text" id="editDescricao" placeholder="Descrição">
+            <input type="number" id="editValor" placeholder="Valor" step="0.01">
+            <input type="date" id="editData">
+            <div class="modal-buttons">
+                <button onclick="fecharModal('modalEdit')" class="btn-cinza">Cancelar</button>
+                <button id="btnConfirmarEdicao" class="btn-verde-ok">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="dashboard.js?v=21"></script>
 </body>
 </html>
