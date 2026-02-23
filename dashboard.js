@@ -1,28 +1,39 @@
 let transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
 let idParaDeletar = null;
+let filtroTipoAtual = 'todos';
 
-// Configurar mês atual ao abrir
-document.getElementById('mesFiltro').value = new Date().toISOString().substring(0, 7);
+// Configurar data e mês padrão
+const hoje = new Date();
+document.getElementById('mesFiltro').value = hoje.toISOString().substring(0, 7);
+document.getElementById('dataVencimento').valueAsDate = hoje;
 
 function adicionar() {
     const desc = document.getElementById('descricao').value;
     const valor = document.getElementById('valor').value;
     const tipo = document.getElementById('tipo').value;
+    const data = document.getElementById('dataVencimento').value;
 
-    if (!desc || !valor) return alert("Preencha os campos!");
+    if (!desc || !valor || !data) return alert("Preencha todos os campos!");
 
     const nova = {
         id: Date.now(),
         descricao: desc,
         valor: parseFloat(valor),
         tipo: tipo,
-        data: new Date().toISOString()
+        data: data
     };
 
     transacoes.push(nova);
     salvar();
     document.getElementById('descricao').value = '';
     document.getElementById('valor').value = '';
+    renderizar();
+}
+
+function filtrarTipo(tipo, btn) {
+    filtroTipoAtual = tipo;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
     renderizar();
 }
 
@@ -54,16 +65,25 @@ function renderizar() {
 
     let e = 0, s = 0;
 
-    transacoes.filter(t => t.data.includes(filtroMes) && t.descricao.toLowerCase().includes(busca))
+    transacoes
+    .filter(t => {
+        const porMes = t.data.includes(filtroMes);
+        const porBusca = t.descricao.toLowerCase().includes(busca);
+        const porTipo = filtroTipoAtual === 'todos' || t.tipo === filtroTipoAtual;
+        return porMes && porBusca && porTipo;
+    })
+    .sort((a, b) => new Date(b.data) - new Date(a.data))
     .forEach(t => {
         if (t.tipo === 'receita') e += t.valor; else s += t.valor;
 
         const li = document.createElement('li');
         li.className = `item-lista item-${t.tipo}`;
+        const dataFormatada = t.data.split('-').reverse().join('/');
         li.innerHTML = `
             <div>
-                <strong>${t.descricao}</strong><br>
-                <small class="${t.tipo === 'receita' ? 'verde' : 'vermelho'}">R$ ${t.valor.toFixed(2)}</small>
+                <strong>${t.descricao}</strong> <br>
+                <small>${dataFormatada}</small><br>
+                <span class="${t.tipo === 'receita' ? 'verde' : 'vermelho'}">R$ ${t.valor.toFixed(2)}</span>
             </div>
             <div class="acoes">
                 <span onclick="deletar(${t.id})">🗑️</span>
@@ -89,7 +109,11 @@ function alternarTema() {
 function fazerBackup() {
     const dados = JSON.stringify(transacoes);
     const blob = new Blob([dados], {type: 'text/plain'});
-    alert("Dados copiados! (Simulação de backup)");
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup_caixa_${new Date().toLocaleDateString()}.txt`;
+    a.click();
 }
 
 renderizar();
