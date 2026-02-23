@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Meu Caixa</title>
-    <link rel="stylesheet" href="style.css?v=23">
+    <link rel="stylesheet" href="style.css?v=24">
 </head>
 <body>
     <div class="app">
@@ -63,10 +63,16 @@
     </div>
 
     <div id="modalConfirm" class="modal"><div class="modal-content">
-        <h3>Excluir?</h3><p id="msgConfirm">Deseja apagar?</p>
-        <div class="modal-buttons">
+        <h3>Excluir?</h3>
+        <p id="msgConfirm">Deseja apagar?</p>
+        <div id="botoesExclusaoSimples" class="modal-buttons">
             <button onclick="fecharModal('modalConfirm')" class="btn-cinza">Cancelar</button>
-            <button id="btnConfirmarAcao" class="btn-vermelho">Confirmar</button>
+            <button id="btnConfirmarSimples" class="btn-vermelho">Excluir</button>
+        </div>
+        <div id="botoesExclusaoGrupo" class="modal-buttons" style="display:none; flex-direction: column;">
+            <button id="btnExcluirUm" class="btn-vermelho">Apenas esta parcela</button>
+            <button id="btnExcluirTodos" class="btn-vermelho" style="background:#c0392b !important">Todas as parcelas</button>
+            <button onclick="fecharModal('modalConfirm')" class="btn-cinza">Voltar</button>
         </div>
     </div></div>
 
@@ -81,6 +87,6 @@
         </div>
     </div></div>
 
-    <script src="dashboard.js?v=23"></script>
+    <script src="dashboard.js?v=24"></script>
 </body>
 </html>
