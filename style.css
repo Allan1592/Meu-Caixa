@@ -32,3 +32,5 @@ button { background: var(--primary); color: white; border: none; font-weight: bo
 .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
 .btn-cinza { background: #7f8c8d !important; }
 .btn-vermelho { background: #e74c3c !important; }
+.btn-verde-ok { background: #2ecc71 !important; color: white; }
+
