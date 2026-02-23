@@ -24,16 +24,22 @@
         </div>
 
         <div class="formulario">
-            <input type="text" id="descricao" placeholder="Descrição (ex: Aluguel)">
-            <div class="row">
-                <input type="number" id="valor" placeholder="R$ 0,00" step="0.01">
-                <select id="tipo">
-                    <option value="receita">Receita</option>
-                    <option value="despesa">Despesa</option>
-                </select>
-            </div>
-            <input type="date" id="dataVencimento">
-            <button onclick="adicionar()">Adicionar Lançamento</button>
+    <input type="text" id="descricao" placeholder="Descrição (ex: Aluguel)">
+    <div class="row">
+        <input type="number" id="valor" placeholder="R$ 0,00" step="0.01">
+        <select id="tipo">
+            <option value="receita">Receita</option>
+            <option value="despesa" selected>Despesa</option>
+        </select>
+
+        </div>
+
+     <div class="row">
+        <input type="date" id="dataVencimento">
+        <input type="number" id="parcelas" placeholder="Vezes (ex: 12)" min="1" value="1">
+    </div>
+    <button onclick="adicionar()">Adicionar Lançamento</button>
+</div>
         </div>
 
         <div class="filtros-tipo">
