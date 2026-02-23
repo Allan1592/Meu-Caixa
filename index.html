@@ -4,16 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Meu Caixa</title>
-    <link rel="stylesheet" href="style.css?v=24">
+    <link rel="stylesheet" href="style.css?v=25">
 </head>
 <body>
     <div class="app">
-        <div class="header-top">
-            <h2>Meu Caixa</h2>
-            <div class="acoes-topo">
-                <button onclick="alternarTema()">🌓</button>
-                <button onclick="fazerBackup()">💾</button>
-            </div>
+        <div class="header-novo">
+            <button class="btn-circular" onclick="fazerBackup()" title="Backup">💾</button>
+            <h1>Meu Caixa</h1>
+            <button class="btn-circular" onclick="alternarTema()" title="Tema">🌓</button>
         </div>
 
         <div class="card-resumo">
@@ -64,13 +62,13 @@
 
     <div id="modalConfirm" class="modal"><div class="modal-content">
         <h3>Excluir?</h3>
-        <p id="msgConfirm">Deseja apagar?</p>
+        <p id="msgConfirm"></p>
         <div id="botoesExclusaoSimples" class="modal-buttons">
             <button onclick="fecharModal('modalConfirm')" class="btn-cinza">Cancelar</button>
             <button id="btnConfirmarSimples" class="btn-vermelho">Excluir</button>
         </div>
         <div id="botoesExclusaoGrupo" class="modal-buttons" style="display:none; flex-direction: column;">
-            <button id="btnExcluirUm" class="btn-vermelho">Apenas esta parcela</button>
+            <button id="btnExcluirUm" class="btn-vermelho">Apenas esta</button>
             <button id="btnExcluirTodos" class="btn-vermelho" style="background:#c0392b !important">Todas as parcelas</button>
             <button onclick="fecharModal('modalConfirm')" class="btn-cinza">Voltar</button>
         </div>
@@ -87,6 +85,6 @@
         </div>
     </div></div>
 
-    <script src="dashboard.js?v=24"></script>
+    <script src="dashboard.js?v=25"></script>
 </body>
 </html>
