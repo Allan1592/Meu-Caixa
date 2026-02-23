@@ -21,8 +21,10 @@ function adicionar() {
     if (!desc || !val || !dataBase) return alert("Preencha os campos!");
 
     let vezes = 1;
-    if (rec === 'fixa') vezes = 24; // Projeta 2 anos de gastos fixos
+    if (rec === 'fixa') vezes = 24;
     if (rec === 'parcelada') vezes = parcelas;
+
+    const grupoId = vezes > 1 ? Date.now() : null; // Identificador do grupo
 
     for (let i = 0; i < vezes; i++) {
         let dt = new Date(dataBase + "T12:00:00");
@@ -30,7 +32,8 @@ function adicionar() {
         let dFinal = (vezes > 1 && rec !== 'fixa') ? `${desc} (${i + 1}/${vezes})` : desc;
         
         transacoes.push({
-            id: Date.now() + i,
+            id: Date.now() + i + Math.random(),
+            grupoId: grupoId, // Todas as parcelas ganham o mesmo grupoId
             descricao: dFinal,
             valor: parseFloat(val),
             tipo: tip,
@@ -40,33 +43,67 @@ function adicionar() {
     salvarERenderizar();
     document.getElementById('descricao').value = '';
     document.getElementById('valor').value = '';
+    document.getElementById('parcelas').value = '1';
+}
+
+function deletar(id) {
+    const item = transacoes.find(t => t.id === id);
+    const modal = document.getElementById('modalConfirm');
+    const msg = document.getElementById('msgConfirm');
+    const divSimples = document.getElementById('botoesExclusaoSimples');
+    const divGrupo = document.getElementById('botoesExclusaoGrupo');
+
+    modal.style.display = 'flex';
+
+    if (item.grupoId) {
+        msg.innerText = "Este item faz parte de um grupo (parcelado/fixo). O que deseja fazer?";
+        divSimples.style.display = 'none';
+        divGrupo.style.display = 'flex';
+
+        document.getElementById('btnExcluirUm').onclick = () => {
+            transacoes = transacoes.filter(t => t.id !== id);
+            finalizarExclusao();
+        };
+
+        document.getElementById('btnExcluirTodos').onclick = () => {
+            transacoes = transacoes.filter(t => t.grupoId !== item.grupoId);
+            finalizarExclusao();
+        };
+    } else {
+        msg.innerText = "Deseja excluir este item?";
+        divSimples.style.display = 'flex';
+        divGrupo.style.display = 'none';
+        document.getElementById('btnConfirmarSimples').onclick = () => {
+            transacoes = transacoes.filter(t => t.id !== id);
+            finalizarExclusao();
+        };
+    }
+}
+
+function finalizarExclusao() {
+    fecharModal('modalConfirm');
+    salvarERenderizar();
 }
 
 function confirmarLimpeza(modo) {
     const msg = modo === 'mes' ? "Apagar todos os lançamentos DESTE MÊS?" : "Apagar ABSOLUTAMENTE TUDO?";
     document.getElementById('msgConfirm').innerText = msg;
+    document.getElementById('botoesExclusaoSimples').style.display = 'flex';
+    document.getElementById('botoesExclusaoGrupo').style.display = 'none';
     document.getElementById('modalConfirm').style.display = 'flex';
-    document.getElementById('btnConfirmarAcao').onclick = () => {
+    
+    document.getElementById('btnConfirmarSimples').onclick = () => {
         if (modo === 'mes') {
             const mes = document.getElementById('mesFiltro').value;
             transacoes = transacoes.filter(t => !t.data.includes(mes));
         } else {
             transacoes = [];
         }
-        fecharModal('modalConfirm');
-        salvarERenderizar();
+        finalizarExclusao();
     };
 }
 
-function deletar(id) {
-    document.getElementById('msgConfirm').innerText = "Deseja excluir este item?";
-    document.getElementById('modalConfirm').style.display = 'flex';
-    document.getElementById('btnConfirmarAcao').onclick = () => {
-        transacoes = transacoes.filter(t => t.id !== id);
-        fecharModal('modalConfirm');
-        salvarERenderizar();
-    };
-}
+// ... (Restante das funções: editar, filtrarTipo, renderizar, etc., permanecem iguais à v23)
 
 function editar(id) {
     const item = transacoes.find(t => t.id === id);
