@@ -1,79 +1,87 @@
 let transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
-let idParaDeletar = null;
-let idParaEditar = null;
 let filtroTipoAtual = 'todos';
 
-// Inicialização de datas
 const hoje = new Date();
 document.getElementById('dataVencimento').valueAsDate = hoje;
 document.getElementById('mesFiltro').value = hoje.toISOString().substring(0, 7);
+
+function ajustarCamposRecorrencia() {
+    const rec = document.getElementById('recorrencia').value;
+    document.getElementById('divParcelas').style.display = (rec === 'parcelada') ? 'block' : 'none';
+}
 
 function adicionar() {
     const desc = document.getElementById('descricao').value;
     const val = document.getElementById('valor').value;
     const tip = document.getElementById('tipo').value;
-    const dataBaseStr = document.getElementById('dataVencimento').value;
-    const qtdParcelas = parseInt(document.getElementById('parcelas').value) || 1;
+    const dataBase = document.getElementById('dataVencimento').value;
+    const rec = document.getElementById('recorrencia').value;
+    const parcelas = parseInt(document.getElementById('numParcelas').value) || 1;
 
-    if (!desc || !val || !dataBaseStr) {
-        alert("Preencha descrição, valor e data!");
-        return;
-    }
+    if (!desc || !val || !dataBase) return alert("Preencha os campos!");
 
-    // Loop para criar parcelas
-    for (let i = 0; i < qtdParcelas; i++) {
-        let dataParcela = new Date(dataBaseStr + "T12:00:00");
-        dataParcela.setMonth(dataParcela.getMonth() + i);
+    let vezes = 1;
+    if (rec === 'fixa') vezes = 24; // Projeta 2 anos de gastos fixos
+    if (rec === 'parcelada') vezes = parcelas;
+
+    for (let i = 0; i < vezes; i++) {
+        let dt = new Date(dataBase + "T12:00:00");
+        dt.setMonth(dt.getMonth() + i);
+        let dFinal = (vezes > 1 && rec !== 'fixa') ? `${desc} (${i + 1}/${vezes})` : desc;
         
-        const descFinal = qtdParcelas > 1 ? `${desc} (${i + 1}/${qtdParcelas})` : desc;
-
         transacoes.push({
-            id: Date.now() + i, // Garante IDs únicos
-            descricao: descFinal,
+            id: Date.now() + i,
+            descricao: dFinal,
             valor: parseFloat(val),
             tipo: tip,
-            data: dataParcela.toISOString().split('T')[0]
+            data: dt.toISOString().split('T')[0]
         });
     }
-
     salvarERenderizar();
-    
-    // Limpa campos
     document.getElementById('descricao').value = '';
     document.getElementById('valor').value = '';
-    document.getElementById('parcelas').value = '1';
+}
+
+function confirmarLimpeza(modo) {
+    const msg = modo === 'mes' ? "Apagar todos os lançamentos DESTE MÊS?" : "Apagar ABSOLUTAMENTE TUDO?";
+    document.getElementById('msgConfirm').innerText = msg;
+    document.getElementById('modalConfirm').style.display = 'flex';
+    document.getElementById('btnConfirmarAcao').onclick = () => {
+        if (modo === 'mes') {
+            const mes = document.getElementById('mesFiltro').value;
+            transacoes = transacoes.filter(t => !t.data.includes(mes));
+        } else {
+            transacoes = [];
+        }
+        fecharModal('modalConfirm');
+        salvarERenderizar();
+    };
+}
+
+function deletar(id) {
+    document.getElementById('msgConfirm').innerText = "Deseja excluir este item?";
+    document.getElementById('modalConfirm').style.display = 'flex';
+    document.getElementById('btnConfirmarAcao').onclick = () => {
+        transacoes = transacoes.filter(t => t.id !== id);
+        fecharModal('modalConfirm');
+        salvarERenderizar();
+    };
 }
 
 function editar(id) {
-    idParaEditar = id;
     const item = transacoes.find(t => t.id === id);
     document.getElementById('editDescricao').value = item.descricao;
     document.getElementById('editValor').value = item.valor;
     document.getElementById('editData').value = item.data;
     document.getElementById('modalEdit').style.display = 'flex';
-}
-
-document.getElementById('btnConfirmarEdicao').onclick = function() {
-    const item = transacoes.find(t => t.id === idParaEditar);
-    if (item) {
+    document.getElementById('btnConfirmarEdicao').onclick = () => {
         item.descricao = document.getElementById('editDescricao').value;
         item.valor = parseFloat(document.getElementById('editValor').value);
         item.data = document.getElementById('editData').value;
+        fecharModal('modalEdit');
         salvarERenderizar();
-    }
-    fecharModal('modalEdit');
-};
-
-function deletar(id) {
-    idParaDeletar = id;
-    document.getElementById('modalConfirm').style.display = 'flex';
+    };
 }
-
-document.getElementById('btnConfirmarExclusao').onclick = function() {
-    transacoes = transacoes.filter(t => t.id !== idParaDeletar);
-    salvarERenderizar();
-    fecharModal('modalConfirm');
-};
 
 function filtrarTipo(tipo, btn) {
     filtroTipoAtual = tipo;
@@ -82,9 +90,7 @@ function filtrarTipo(tipo, btn) {
     renderizar();
 }
 
-function fecharModal(id) {
-    document.getElementById(id).style.display = 'none';
-}
+function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
 
 function salvarERenderizar() {
     localStorage.setItem('transacoes', JSON.stringify(transacoes));
@@ -93,40 +99,21 @@ function salvarERenderizar() {
 
 function renderizar() {
     const lista = document.getElementById('listaTransacoes');
-    const filtroMes = document.getElementById('mesFiltro').value;
+    const mes = document.getElementById('mesFiltro').value;
     const busca = document.getElementById('busca').value.toLowerCase();
     lista.innerHTML = '';
-    
     let e = 0, s = 0;
 
-    transacoes
-    .filter(t => {
-        const pMes = t.data.includes(filtroMes);
-        const pBusca = t.descricao.toLowerCase().includes(busca);
-        const pTipo = filtroTipoAtual === 'todos' || t.tipo === filtroTipoAtual;
-        return pMes && pBusca && pTipo;
-    })
+    transacoes.filter(t => t.data.includes(mes) && t.descricao.toLowerCase().includes(busca) && (filtroTipoAtual === 'todos' || t.tipo === filtroTipoAtual))
     .sort((a, b) => new Date(b.data) - new Date(a.data))
     .forEach(t => {
         if (t.tipo === 'receita') e += t.valor; else s += t.valor;
-
-        const dataBr = t.data.split('-').reverse().join('/');
         const li = document.createElement('li');
         li.className = `item-lista item-${t.tipo}`;
-        li.innerHTML = `
-            <div>
-                <strong>${t.descricao}</strong><br>
-                <small>${dataBr}</small><br>
-                <span class="${t.tipo === 'receita' ? 'verde' : 'vermelho'}">R$ ${t.valor.toFixed(2)}</span>
-            </div>
-            <div class="acoes">
-                <span onclick="editar(${t.id})" style="margin-right:15px">✏️</span>
-                <span onclick="deletar(${t.id})">🗑️</span>
-            </div>
-        `;
+        li.innerHTML = `<div><strong>${t.descricao}</strong><br><small>${t.data.split('-').reverse().join('/')}</small><br><span class="${t.tipo==='receita'?'verde':'vermelho'}">R$ ${t.valor.toFixed(2)}</span></div>
+        <div class="acoes"><span onclick="editar(${t.id})">✏️</span><span onclick="deletar(${t.id})">🗑️</span></div>`;
         lista.appendChild(li);
     });
-
     document.getElementById('resumoEntradas').innerText = `R$ ${e.toFixed(2)}`;
     document.getElementById('resumoSaidas').innerText = `R$ ${s.toFixed(2)}`;
     const saldo = e - s;
@@ -136,18 +123,14 @@ function renderizar() {
 }
 
 function alternarTema() {
-    const body = document.body;
-    const atual = body.getAttribute('data-theme');
-    body.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
+    const b = document.body;
+    b.setAttribute('data-theme', b.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
 }
 
 function fazerBackup() {
-    const dados = JSON.stringify(transacoes);
-    const blob = new Blob([dados], {type: 'text/plain'});
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `backup_caixa.txt`;
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(transacoes)], {type: 'text/plain'}));
+    a.download = `caixa_backup.txt`;
     a.click();
 }
-
 renderizar();
