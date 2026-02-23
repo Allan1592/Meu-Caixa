@@ -51,7 +51,7 @@ function deletar(id) {
     const item = transacoes.find(t => t.id === id);
     idParaDeletar = id;
     document.getElementById('modalConfirm').style.display = 'flex';
-    document.getElementById('msgConfirm').innerText = item.grupoId ? "Este item tem parcelas. Apagar tudo?" : "Excluir este lançamento?";
+    document.getElementById('msgConfirm').innerText = item.grupoId ? "Este item tem parcelas. O que deseja fazer?" : "Deseja excluir este item?";
     
     document.getElementById('botoesExclusaoSimples').style.display = item.grupoId ? 'none' : 'flex';
     document.getElementById('botoesExclusaoGrupo').style.display = item.grupoId ? 'flex' : 'none';
@@ -141,11 +141,19 @@ function renderizar() {
     resSaldo.className = saldo >= 0 ? 'verde' : 'vermelho';
 }
 
-// BACKUP NOVO: COPIAR E COLAR
+// BACKUP SEGURO PARA KODULAR
 function fazerBackup() {
     const dados = JSON.stringify(transacoes);
-    // Cria uma caixa de alerta com os dados para você copiar
-    prompt("CÓDIGO DE BACKUP: Selecione tudo, copie e guarde em um local seguro (WhatsApp ou E-mail):", dados);
+    document.getElementById('areaBackup').style.display = 'block';
+    document.getElementById('textoBackup').value = dados;
+}
+
+function copiarBackup() {
+    const copyText = document.getElementById("textoBackup");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); // Para dispositivos móveis
+    document.execCommand("copy");
+    alert("Código copiado! Guarde no seu WhatsApp.");
 }
 
 renderizar();
