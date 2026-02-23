@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Meu Caixa</title>
-    <link rel="stylesheet" href="style.css?v=21">
+    <link rel="stylesheet" href="style.css?v=22">
 </head>
 <body>
     <div class="app">
@@ -24,22 +24,19 @@
         </div>
 
         <div class="formulario">
-    <input type="text" id="descricao" placeholder="Descrição (ex: Aluguel)">
-    <div class="row">
-        <input type="number" id="valor" placeholder="R$ 0,00" step="0.01">
-        <select id="tipo">
-            <option value="receita">Receita</option>
-            <option value="despesa" selected>Despesa</option>
-        </select>
-
-        </div>
-
-     <div class="row">
-        <input type="date" id="dataVencimento">
-        <input type="number" id="parcelas" placeholder="Vezes (ex: 12)" min="1" value="1">
-    </div>
-    <button onclick="adicionar()">Adicionar Lançamento</button>
-</div>
+            <input type="text" id="descricao" placeholder="Descrição (ex: Aluguel)">
+            <div class="row">
+                <input type="number" id="valor" placeholder="R$ 0,00" step="0.01">
+                <select id="tipo">
+                    <option value="receita">Receita</option>
+                    <option value="despesa" selected>Despesa</option>
+                </select>
+            </div>
+            <div class="row">
+                <input type="date" id="dataVencimento">
+                <input type="number" id="parcelas" placeholder="Vezes" min="1" value="1" title="Número de parcelas">
+            </div>
+            <button onclick="adicionar()">Adicionar Lançamento</button>
         </div>
 
         <div class="filtros-tipo">
@@ -77,6 +74,6 @@
         </div>
     </div>
 
-    <script src="dashboard.js?v=21"></script>
+    <script src="dashboard.js?v=22"></script>
 </body>
 </html>
