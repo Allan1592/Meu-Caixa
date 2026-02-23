@@ -1,136 +1,95 @@
-let transacoes = JSON.parse(localStorage.getItem('caixa_pro_db')) || [];
-let filtroTipoAtivo = 'todos';
+let transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
+let idParaDeletar = null;
 
-const inputMes = document.getElementById('month-filter');
-const inputData = document.getElementById('data-vencimento');
-const inputBusca = document.getElementById('busca');
-const listaUl = document.getElementById('lista');
+// Configurar mês atual ao abrir
+document.getElementById('mesFiltro').value = new Date().toISOString().substring(0, 7);
 
-const hoje = new Date();
-const mesHoje = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
-const diaHoje = hoje.toISOString().split('T')[0];
+function adicionar() {
+    const desc = document.getElementById('descricao').value;
+    const valor = document.getElementById('valor').value;
+    const tipo = document.getElementById('tipo').value;
 
-inputMes.value = mesHoje;
-inputData.value = diaHoje;
+    if (!desc || !valor) return alert("Preencha os campos!");
 
-if (localStorage.getItem('caixa_tema') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    const nova = {
+        id: Date.now(),
+        descricao: desc,
+        valor: parseFloat(valor),
+        tipo: tipo,
+        data: new Date().toISOString()
+    };
 
-function alternarTema() {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const novo = isDark ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', novo);
-    localStorage.setItem('caixa_tema', novo);
+    transacoes.push(nova);
+    salvar();
+    document.getElementById('descricao').value = '';
+    document.getElementById('valor').value = '';
+    renderizar();
 }
 
-function filtrarTipo(tipo, btn) {
-    filtroTipoAtivo = tipo;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    atualizar();
+function deletar(id) {
+    idParaDeletar = id;
+    document.getElementById('modalConfirm').style.display = 'flex';
 }
 
-function atualizar() {
-    const mesRef = inputMes.value;
-    const termoBusca = inputBusca.value.toLowerCase();
-    listaUl.innerHTML = '';
-    
-    let saldoAnt = 0, entMes = 0, saiMes = 0;
+document.getElementById('btnConfirmarExclusao').onclick = function() {
+    transacoes = transacoes.filter(t => t.id !== idParaDeletar);
+    salvar();
+    fecharModal('modalConfirm');
+    renderizar();
+};
 
-    transacoes.sort((a, b) => new Date(b.data) - new Date(a.data));
-
-    transacoes.forEach(t => {
-        const mesT = t.data.substring(0, 7);
-        if (mesT < mesRef) saldoAnt += (t.tipo === 'receita' ? t.valor : -t.valor);
-        
-        if (mesT === mesRef) {
-            if (t.tipo === 'receita') entMes += t.valor; else saiMes += t.valor;
-
-            const bateTipo = (filtroTipoAtivo === 'todos' || filtroTipoAtivo === t.tipo);
-            const bateBusca = t.desc.toLowerCase().includes(termoBusca);
-            if (bateTipo && bateBusca) renderizarItem(t);
-        }
-    });
-
-    document.getElementById('saldo-anterior').innerText = formatarMoeda(saldoAnt);
-    document.getElementById('entradas-mes').innerText = formatarMoeda(entMes);
-    document.getElementById('saidas-mes').innerText = formatarMoeda(saiMes);
-    document.getElementById('diferenca-mes').innerText = formatarMoeda(entMes - saiMes);
-    document.getElementById('saldo-final').innerText = formatarMoeda(saldoAnt + (entMes - saiMes));
-    document.getElementById('diferenca-mes').className = (entMes - saiMes) >= 0 ? 'verde' : 'vermelho';
-    localStorage.setItem('caixa_pro_db', JSON.stringify(transacoes));
-}
-
-function renderizarItem(t) {
-    const dataBR = t.data.split('-').reverse().join('/');
-    const eHoje = t.data === diaHoje;
-    const li = document.createElement('li');
-    li.className = `item-lista ${t.tipo === 'receita' ? 'item-receita' : 'item-despesa'}`;
-    li.innerHTML = `
-        <div class="item-info">
-            <b>${t.desc}${eHoje ? '<span class="badge-hoje">HOJE</span>' : ''}</b>
-            <small>${dataBR} - ${formatarMoeda(t.valor)}</small>
-        </div>
-        <div class="acoes">
-            <button class="btn-edit" onclick="prepararEdicao('${t.id}')">✏️</button>
-            <button class="btn-del" onclick="remover('${t.id}')">🗑️</button>
-        </div>
-    `;
-    listaUl.appendChild(li);
+function fecharModal(id) {
+    document.getElementById(id).style.display = 'none';
 }
 
 function salvar() {
-    const idEd = document.getElementById('edit-id').value;
-    const desc = document.getElementById('desc').value;
-    const valor = parseFloat(document.getElementById('valor').value);
-    const dataV = document.getElementById('data-vencimento').value;
-    const tipo = document.getElementById('tipo').value;
-
-    if (!desc || isNaN(valor) || !dataV) return alert("Preencha tudo!");
-
-    if (idEd) {
-        const i = transacoes.findIndex(t => t.id === idEd);
-        transacoes[i] = { ...transacoes[i], desc, valor, tipo, data: dataV };
-    } else {
-        transacoes.push({ id: Date.now().toString(), desc, valor, tipo, data: dataV });
-    }
-    limparForm(); atualizar();
+    localStorage.setItem('transacoes', JSON.stringify(transacoes));
 }
 
-function prepararEdicao(id) {
-    const t = transacoes.find(t => t.id === id);
-    document.getElementById('edit-id').value = t.id;
-    document.getElementById('desc').value = t.desc;
-    document.getElementById('valor').value = t.valor;
-    document.getElementById('data-vencimento').value = t.data;
-    document.getElementById('tipo').value = t.tipo;
-    document.getElementById('btn-salvar').innerText = "Atualizar";
-    document.getElementById('btn-cancelar').style.display = "block";
-    window.scrollTo({top: 0, behavior: 'smooth'});
+function renderizar() {
+    const lista = document.getElementById('listaTransacoes');
+    const filtroMes = document.getElementById('mesFiltro').value;
+    const busca = document.getElementById('busca').value.toLowerCase();
+    lista.innerHTML = '';
+
+    let e = 0, s = 0;
+
+    transacoes.filter(t => t.data.includes(filtroMes) && t.descricao.toLowerCase().includes(busca))
+    .forEach(t => {
+        if (t.tipo === 'receita') e += t.valor; else s += t.valor;
+
+        const li = document.createElement('li');
+        li.className = `item-lista item-${t.tipo}`;
+        li.innerHTML = `
+            <div>
+                <strong>${t.descricao}</strong><br>
+                <small class="${t.tipo === 'receita' ? 'verde' : 'vermelho'}">R$ ${t.valor.toFixed(2)}</small>
+            </div>
+            <div class="acoes">
+                <span onclick="deletar(${t.id})">🗑️</span>
+            </div>
+        `;
+        lista.appendChild(li);
+    });
+
+    document.getElementById('resumoEntradas').innerText = `R$ ${e.toFixed(2)}`;
+    document.getElementById('resumoSaidas').innerText = `R$ ${s.toFixed(2)}`;
+    const saldo = e - s;
+    const resSaldo = document.getElementById('resumoSaldo');
+    resSaldo.innerText = `R$ ${saldo.toFixed(2)}`;
+    resSaldo.className = saldo >= 0 ? 'verde' : 'vermelho';
 }
 
-function limparForm() {
-    document.getElementById('edit-id').value = '';
-    document.getElementById('desc').value = '';
-    document.getElementById('valor').value = '';
-    document.getElementById('data-vencimento').value = diaHoje;
-    document.getElementById('btn-salvar').innerText = "Adicionar Lançamento";
-    document.getElementById('btn-cancelar').style.display = "none";
+function alternarTema() {
+    const body = document.body;
+    const tema = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    body.setAttribute('data-theme', tema);
 }
 
 function fazerBackup() {
-    if (transacoes.length === 0) return alert("Sem dados.");
-    let txt = "*BACKUP FINANÇAS*\n\n";
-    transacoes.forEach(t => {
-        const d = t.data.split('-').reverse().join('/');
-        txt += `${d} - ${t.tipo === 'receita' ? '(+)' : '(-)'} ${t.desc}: R$ ${t.valor.toFixed(2)}\n`;
-    });
-    if (navigator.share) navigator.share({ title: 'Backup', text: txt });
-    else { alert("Copiado!"); navigator.clipboard.writeText(txt); }
+    const dados = JSON.stringify(transacoes);
+    const blob = new Blob([dados], {type: 'text/plain'});
+    alert("Dados copiados! (Simulação de backup)");
 }
 
-function remover(id) { if(confirm("Excluir?")) { transacoes = transacoes.filter(t => t.id !== id); atualizar(); } }
-function limparTudo() { if(confirm("Apagar TUDO?")) { transacoes = []; localStorage.clear(); location.reload(); } }
-function formatarMoeda(v) { return v.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' }); }
-
-inputMes.addEventListener('change', atualizar);
-atualizar();
+renderizar();
