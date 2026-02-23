@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Meu Caixa</title>
-    <link rel="stylesheet" href="style.css?v=22">
+    <link rel="stylesheet" href="style.css?v=23">
 </head>
 <body>
     <div class="app">
@@ -34,7 +34,14 @@
             </div>
             <div class="row">
                 <input type="date" id="dataVencimento">
-                <input type="number" id="parcelas" placeholder="Vezes" min="1" value="1" title="Número de parcelas">
+                <select id="recorrencia" onchange="ajustarCamposRecorrencia()">
+                    <option value="unica">Única</option>
+                    <option value="fixa">Fixa (Mensal)</option>
+                    <option value="parcelada">Parcelada</option>
+                </select>
+            </div>
+            <div id="divParcelas" style="display:none">
+                <input type="number" id="numParcelas" placeholder="Número de parcelas" min="2" value="2">
             </div>
             <button onclick="adicionar()">Adicionar Lançamento</button>
         </div>
@@ -48,32 +55,32 @@
         <input type="text" id="busca" placeholder="🔍 Buscar lançamento..." oninput="renderizar()">
         
         <ul id="listaTransacoes" class="lista-transacoes"></ul>
-    </div>
 
-    <div id="modalConfirm" class="modal">
-        <div class="modal-content">
-            <h3>Excluir?</h3>
-            <p>Deseja apagar este lançamento?</p>
-            <div class="modal-buttons">
-                <button onclick="fecharModal('modalConfirm')" class="btn-cinza">Cancelar</button>
-                <button id="btnConfirmarExclusao" class="btn-vermelho">Excluir</button>
-            </div>
+        <div class="acoes-perigosas">
+            <button onclick="confirmarLimpeza('mes')" class="btn-outline">Apagar este Mês</button>
+            <button onclick="confirmarLimpeza('tudo')" class="btn-outline-vermelho">Limpar Tudo</button>
         </div>
     </div>
 
-    <div id="modalEdit" class="modal">
-        <div class="modal-content">
-            <h3>Editar Lançamento</h3>
-            <input type="text" id="editDescricao" placeholder="Descrição">
-            <input type="number" id="editValor" placeholder="Valor" step="0.01">
-            <input type="date" id="editData">
-            <div class="modal-buttons">
-                <button onclick="fecharModal('modalEdit')" class="btn-cinza">Cancelar</button>
-                <button id="btnConfirmarEdicao" class="btn-verde-ok">Salvar</button>
-            </div>
+    <div id="modalConfirm" class="modal"><div class="modal-content">
+        <h3>Excluir?</h3><p id="msgConfirm">Deseja apagar?</p>
+        <div class="modal-buttons">
+            <button onclick="fecharModal('modalConfirm')" class="btn-cinza">Cancelar</button>
+            <button id="btnConfirmarAcao" class="btn-vermelho">Confirmar</button>
         </div>
-    </div>
+    </div></div>
 
-    <script src="dashboard.js?v=22"></script>
+    <div id="modalEdit" class="modal"><div class="modal-content">
+        <h3>Editar</h3>
+        <input type="text" id="editDescricao">
+        <input type="number" id="editValor" step="0.01">
+        <input type="date" id="editData">
+        <div class="modal-buttons">
+            <button onclick="fecharModal('modalEdit')" class="btn-cinza">Sair</button>
+            <button id="btnConfirmarEdicao" class="btn-verde-ok">Salvar</button>
+        </div>
+    </div></div>
+
+    <script src="dashboard.js?v=23"></script>
 </body>
 </html>
