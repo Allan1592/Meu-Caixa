@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Meu Caixa</title>
-    <link rel="stylesheet" href="style.css?v=10">
+    <link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
     <div class="app">
@@ -32,7 +32,14 @@
                     <option value="despesa">Despesa</option>
                 </select>
             </div>
+            <input type="date" id="dataVencimento">
             <button onclick="adicionar()">Adicionar Lançamento</button>
+        </div>
+
+        <div class="filtros-tipo">
+            <button class="filter-btn active" onclick="filtrarTipo('todos', this)">Todos</button>
+            <button class="filter-btn" onclick="filtrarTipo('receita', this)">Receitas</button>
+            <button class="filter-btn" onclick="filtrarTipo('despesa', this)">Despesas</button>
         </div>
 
         <input type="text" id="busca" placeholder="🔍 Buscar lançamento..." oninput="renderizar()">
@@ -51,6 +58,6 @@
         </div>
     </div>
 
-    <script src="dashboard.js?v=10"></script>
+    <script src="dashboard.js?v=11"></script>
 </body>
 </html>
