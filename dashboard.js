@@ -20,9 +20,7 @@ function adicionar() {
     const rec = document.getElementById('recorrencia').value;
     const parcelas = parseInt(document.getElementById('numParcelas').value) || 1;
 
-    if (!desc || !val || !dataBase) {
-        return; 
-    }
+    if (!desc || !val || !dataBase) return;
 
     let vezes = 1;
     if (rec === 'fixa') vezes = 24;
@@ -47,64 +45,34 @@ function adicionar() {
     salvarERenderizar();
     document.getElementById('descricao').value = '';
     document.getElementById('valor').value = '';
-    document.getElementById('recorrencia').value = 'unica';
-    ajustarCamposRecorrencia();
 }
 
 function deletar(id) {
     const item = transacoes.find(t => t.id === id);
-    const modal = document.getElementById('modalConfirm');
-    const msg = document.getElementById('msgConfirm');
-    const divSimples = document.getElementById('botoesExclusaoSimples');
-    const divGrupo = document.getElementById('botoesExclusaoGrupo');
-
     idParaDeletar = id;
-    modal.style.display = 'flex';
+    document.getElementById('modalConfirm').style.display = 'flex';
+    document.getElementById('msgConfirm').innerText = item.grupoId ? "Este item tem parcelas. Apagar tudo?" : "Excluir este lançamento?";
+    
+    document.getElementById('botoesExclusaoSimples').style.display = item.grupoId ? 'none' : 'flex';
+    document.getElementById('botoesExclusaoGrupo').style.display = item.grupoId ? 'flex' : 'none';
 
-    if (item.grupoId) {
-        msg.innerText = "Este item tem parcelas. O que deseja fazer?";
-        divSimples.style.display = 'none';
-        divGrupo.style.display = 'flex';
-
-        document.getElementById('btnExcluirUm').onclick = () => {
-            transacoes = transacoes.filter(t => t.id !== idParaDeletar);
-            finalizarExclusao();
-        };
-
-        document.getElementById('btnExcluirTodos').onclick = () => {
-            transacoes = transacoes.filter(t => t.grupoId !== item.grupoId);
-            finalizarExclusao();
-        };
-    } else {
-        msg.innerText = "Deseja excluir este lançamento?";
-        divSimples.style.display = 'flex';
-        divGrupo.style.display = 'none';
-        document.getElementById('btnConfirmarSimples').onclick = () => {
-            transacoes = transacoes.filter(t => t.id !== idParaDeletar);
-            finalizarExclusao();
-        };
-    }
+    document.getElementById('btnConfirmarSimples').onclick = () => { transacoes = transacoes.filter(t => t.id !== idParaDeletar); finalizarExclusao(); };
+    document.getElementById('btnExcluirUm').onclick = () => { transacoes = transacoes.filter(t => t.id !== idParaDeletar); finalizarExclusao(); };
+    document.getElementById('btnExcluirTodos').onclick = () => { transacoes = transacoes.filter(t => t.grupoId !== item.grupoId); finalizarExclusao(); };
 }
 
-function finalizarExclusao() {
-    fecharModal('modalConfirm');
-    salvarERenderizar();
-}
+function finalizarExclusao() { fecharModal('modalConfirm'); salvarERenderizar(); }
 
 function confirmarLimpeza(modo) {
-    const msg = modo === 'mes' ? "Apagar TUDO deste mês?" : "Zerar todos os dados do App?";
-    document.getElementById('msgConfirm').innerText = msg;
+    document.getElementById('msgConfirm').innerText = modo === 'mes' ? "Apagar este mês?" : "Zerar tudo?";
     document.getElementById('botoesExclusaoSimples').style.display = 'flex';
     document.getElementById('botoesExclusaoGrupo').style.display = 'none';
     document.getElementById('modalConfirm').style.display = 'flex';
-    
     document.getElementById('btnConfirmarSimples').onclick = () => {
         if (modo === 'mes') {
             const mes = document.getElementById('mesFiltro').value;
             transacoes = transacoes.filter(t => !t.data.includes(mes));
-        } else {
-            transacoes = [];
-        }
+        } else { transacoes = []; }
         finalizarExclusao();
     };
 }
@@ -136,14 +104,11 @@ function filtrarTipo(tipo, btn) {
     renderizar();
 }
 
-function fecharModal(id) {
-    document.getElementById(id).style.display = 'none';
-}
+function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
 
 function alternarTema() {
     const b = document.body;
-    const novoTema = b.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    b.setAttribute('data-theme', novoTema);
+    b.setAttribute('data-theme', b.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
 }
 
 function salvarERenderizar() {
@@ -158,31 +123,16 @@ function renderizar() {
     lista.innerHTML = '';
     let e = 0, s = 0;
 
-    transacoes.filter(t => {
-        const pMes = t.data.includes(mesAtual);
-        const pBusca = t.descricao.toLowerCase().includes(busca);
-        const pTipo = filtroTipoAtual === 'todos' || t.tipo === filtroTipoAtual;
-        return pMes && pBusca && pTipo;
-    })
+    transacoes.filter(t => t.data.includes(mesAtual) && t.descricao.toLowerCase().includes(busca) && (filtroTipoAtual === 'todos' || t.tipo === filtroTipoAtual))
     .sort((a, b) => new Date(b.data) - new Date(a.data))
     .forEach(t => {
         if (t.tipo === 'receita') e += t.valor; else s += t.valor;
         const li = document.createElement('li');
         li.className = `item-lista item-${t.tipo}`;
-        li.innerHTML = `
-            <div>
-                <strong>${t.descricao}</strong><br>
-                <small>${t.data.split('-').reverse().join('/')}</small><br>
-                <span class="${t.tipo === 'receita' ? 'verde' : 'vermelho'}">R$ ${t.valor.toFixed(2)}</span>
-            </div>
-            <div class="acoes">
-                <span onclick="editar(${t.id})">✏️</span>
-                <span onclick="deletar(${t.id})">🗑️</span>
-            </div>
-        `;
+        li.innerHTML = `<div><strong>${t.descricao}</strong><br><small>${t.data.split('-').reverse().join('/')}</small><br><span class="${t.tipo === 'receita' ? 'verde' : 'vermelho'}">R$ ${t.valor.toFixed(2)}</span></div>
+        <div class="acoes"><span onclick="editar(${t.id})">✏️</span><span onclick="deletar(${t.id})">🗑️</span></div>`;
         lista.appendChild(li);
     });
-
     document.getElementById('resumoEntradas').innerText = `R$ ${e.toFixed(2)}`;
     document.getElementById('resumoSaidas').innerText = `R$ ${s.toFixed(2)}`;
     const saldo = e - s;
@@ -191,22 +141,11 @@ function renderizar() {
     resSaldo.className = saldo >= 0 ? 'verde' : 'vermelho';
 }
 
-// Exportar Backup (Versão para Kodular)
+// BACKUP NOVO: COPIAR E COLAR
 function fazerBackup() {
     const dados = JSON.stringify(transacoes);
-    // Em vez de tentar baixar, vamos mandar o texto para o título da página
-    // O Kodular vai "ler" o título e salvar o arquivo para você
-    document.title = "backup:" + dados;
-    
-    // Pequeno aviso visual no próprio botão para você saber que clicou
-    const btn = document.querySelector('button[title="Backup"]');
-    btn.innerText = "✅";
-    setTimeout(() => { btn.innerText = "📤"; }, 2000);
+    // Cria uma caixa de alerta com os dados para você copiar
+    prompt("CÓDIGO DE BACKUP: Selecione tudo, copie e guarde em um local seguro (WhatsApp ou E-mail):", dados);
 }
 
-// Função Sair do App (Versão para Kodular)
-function sairApp() {
-    // Avisa ao Kodular para fechar
-    document.title = "comando:sair";
-}
-
+renderizar();
