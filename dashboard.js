@@ -3,18 +3,15 @@ let filtroTipoAtual = 'todos';
 let idParaDeletar = null;
 let idParaEditar = null;
 
-// Inicialização: Configura as datas padrão ao abrir o app
 const hoje = new Date();
 document.getElementById('dataVencimento').valueAsDate = hoje;
 document.getElementById('mesFiltro').value = hoje.toISOString().substring(0, 7);
 
-// Mostra ou esconde o campo de número de parcelas
 function ajustarCamposRecorrencia() {
     const rec = document.getElementById('recorrencia').value;
     document.getElementById('divParcelas').style.display = (rec === 'parcelada') ? 'block' : 'none';
 }
 
-// Adiciona novos lançamentos (Único, Fixo ou Parcelado)
 function adicionar() {
     const desc = document.getElementById('descricao').value;
     const val = document.getElementById('valor').value;
@@ -24,21 +21,18 @@ function adicionar() {
     const parcelas = parseInt(document.getElementById('numParcelas').value) || 1;
 
     if (!desc || !val || !dataBase) {
-        alert("Por favor, preencha a descrição, valor e data!");
-        return;
+        return; 
     }
 
     let vezes = 1;
-    if (rec === 'fixa') vezes = 24; // Projeta 2 anos para despesas fixas
+    if (rec === 'fixa') vezes = 24;
     if (rec === 'parcelada') vezes = parcelas;
 
-    const grupoId = vezes > 1 ? Date.now() : null; // Identificador para o grupo de parcelas
+    const grupoId = vezes > 1 ? Date.now() : null;
 
     for (let i = 0; i < vezes; i++) {
         let dt = new Date(dataBase + "T12:00:00");
         dt.setMonth(dt.getMonth() + i);
-        
-        // Se for parcelado, adiciona (1/12) ao nome. Se for fixo, mantém o nome limpo.
         let dFinal = (vezes > 1 && rec === 'parcelada') ? `${desc} (${i + 1}/${vezes})` : desc;
         
         transacoes.push({
@@ -50,17 +44,13 @@ function adicionar() {
             data: dt.toISOString().split('T')[0]
         });
     }
-
     salvarERenderizar();
-    
-    // Limpa os campos do formulário
     document.getElementById('descricao').value = '';
     document.getElementById('valor').value = '';
     document.getElementById('recorrencia').value = 'unica';
     ajustarCamposRecorrencia();
 }
 
-// Gerencia a exclusão (Simples ou em Grupo)
 function deletar(id) {
     const item = transacoes.find(t => t.id === id);
     const modal = document.getElementById('modalConfirm');
@@ -72,7 +62,7 @@ function deletar(id) {
     modal.style.display = 'flex';
 
     if (item.grupoId) {
-        msg.innerText = "Este item faz parte de um grupo. O que deseja fazer?";
+        msg.innerText = "Este item tem parcelas. O que deseja fazer?";
         divSimples.style.display = 'none';
         divGrupo.style.display = 'flex';
 
@@ -101,9 +91,8 @@ function finalizarExclusao() {
     salvarERenderizar();
 }
 
-// Limpeza em massa (Mês ou Tudo)
 function confirmarLimpeza(modo) {
-    const msg = modo === 'mes' ? "Apagar TODOS os lançamentos deste mês?" : "Zerar TODOS os dados do aplicativo?";
+    const msg = modo === 'mes' ? "Apagar TUDO deste mês?" : "Zerar todos os dados do App?";
     document.getElementById('msgConfirm').innerText = msg;
     document.getElementById('botoesExclusaoSimples').style.display = 'flex';
     document.getElementById('botoesExclusaoGrupo').style.display = 'none';
@@ -120,7 +109,6 @@ function confirmarLimpeza(modo) {
     };
 }
 
-// Edição de um lançamento específico
 function editar(id) {
     idParaEditar = id;
     const item = transacoes.find(t => t.id === id);
@@ -141,7 +129,6 @@ document.getElementById('btnConfirmarEdicao').onclick = function() {
     fecharModal('modalEdit');
 };
 
-// Filtros, Fechar Modal e Temas
 function filtrarTipo(tipo, btn) {
     filtroTipoAtual = tipo;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -159,7 +146,6 @@ function alternarTema() {
     b.setAttribute('data-theme', novoTema);
 }
 
-// Salva no Banco de Dados local e atualiza a tela
 function salvarERenderizar() {
     localStorage.setItem('transacoes', JSON.stringify(transacoes));
     renderizar();
@@ -205,26 +191,19 @@ function renderizar() {
     resSaldo.className = saldo >= 0 ? 'verde' : 'vermelho';
 }
 
-// Exportar Backup
 function fazerBackup() {
     const dados = JSON.stringify(transacoes);
     const blob = new Blob([dados], {type: 'text/plain'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `caixa_backup_${new Date().toLocaleDateString()}.txt`;
+    a.download = `caixa_backup.txt`;
     a.click();
 }
 
-// Função Sair do App
+// FUNÇÃO SAIR (Sem janelas de erro)
 function sairApp() {
-    if (confirm("Deseja mesmo fechar o Meu Caixa?")) {
-        // Tenta fechar de formas diferentes dependendo do ambiente
-        window.close();
-        if (navigator.app) {
-            navigator.app.exitApp();
-        }
-    }
+    // Muda o título da página para o Kodular perceber e fechar o app
+    document.title = "fechar_app_agora";
 }
 
-// Primeira renderização ao carregar
 renderizar();
