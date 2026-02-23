@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Meu Caixa Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <header>
+            <div class="header-top">
+                <h2>Controle de Caixa</h2>
+                <div class="acoes-topo">
+                    <button onclick="fazerBackup()" title="Backup">💾</button>
+                    <button id="theme-toggle" onclick="alternarTema()">🌓</button>
+                </div>
+            </div>
+            <label class="label-pequena">Mês de Referência:</label>
+            <input type="month" id="month-filter">
+        </header>
+
+        <main>
+            <div class="card-resumo">
+                <div class="linha-resumo"><span>Saldo Anterior:</span> <span id="saldo-anterior">R$ 0,00</span></div>
+                <div class="linha-resumo"><span>Entradas:</span> <span id="entradas-mes" class="verde">R$ 0,00</span></div>
+                <div class="linha-resumo"><span>Saídas:</span> <span id="saidas-mes" class="vermelho">R$ 0,00</span></div>
+                <hr>
+                <div class="linha-resumo total"><span>Diferença:</span> <span id="diferenca-mes">R$ 0,00</span></div>
+                <div class="linha-resumo total"><span>Saldo Final:</span> <span id="saldo-final">R$ 0,00</span></div>
+            </div>
+
+            <div class="formulario">
+                <input type="hidden" id="edit-id">
+                <input type="text" id="desc" placeholder="Descrição">
+                <div class="row">
+                    <input type="number" id="valor" placeholder="Valor R$">
+                    <select id="tipo">
+                        <option value="receita">Entrada (+)</option>
+                        <option value="despesa">Saída (-)</option>
+                    </select>
+                </div>
+                <input type="date" id="data-vencimento">
+                <button id="btn-salvar" onclick="salvar()">Adicionar Lançamento</button>
+                <button id="btn-cancelar" onclick="limparForm()" style="display:none; background:#666;">Cancelar Edição</button>
+            </div>
+
+            <div class="filtros-lista">
+                <div class="filtros-tipo">
+                    <button class="filter-btn active" onclick="filtrarTipo('todos', this)">Todos</button>
+                    <button class="filter-btn" onclick="filtrarTipo('receita', this)">Entradas</button>
+                    <button class="filter-btn" onclick="filtrarTipo('despesa', this)">Saídas</button>
+                </div>
+                <input type="text" id="busca" placeholder="🔍 Buscar por nome..." onkeyup="atualizar()">
+            </div>
+
+            <div class="historico-header">
+                <h3>Lançamentos</h3>
+                <button class="btn-clear" onclick="limparTudo()">Limpar Tudo</button>
+            </div>
+            <ul id="lista" class="lista-transacoes"></ul>
+        </main>
+    </div>
+    <script src="dashboard.js"></script>
+</body>
+</html>
