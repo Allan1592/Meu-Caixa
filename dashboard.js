@@ -51,8 +51,7 @@ function deletar(id) {
     const item = transacoes.find(t => t.id === id);
     idParaDeletar = id;
     document.getElementById('modalConfirm').style.display = 'flex';
-    document.getElementById('msgConfirm').innerText = item.grupoId ? "Este item tem parcelas. O que deseja fazer?" : "Deseja excluir este item?";
-    
+    document.getElementById('msgConfirm').innerText = item.grupoId ? "O que deseja fazer?" : "Excluir este item?";
     document.getElementById('botoesExclusaoSimples').style.display = item.grupoId ? 'none' : 'flex';
     document.getElementById('botoesExclusaoGrupo').style.display = item.grupoId ? 'flex' : 'none';
 
@@ -64,7 +63,7 @@ function deletar(id) {
 function finalizarExclusao() { fecharModal('modalConfirm'); salvarERenderizar(); }
 
 function confirmarLimpeza(modo) {
-    document.getElementById('msgConfirm').innerText = modo === 'mes' ? "Apagar este mês?" : "Zerar tudo?";
+    document.getElementById('msgConfirm').innerText = modo === 'mes' ? "Zerar este mês?" : "Zerar tudo?";
     document.getElementById('botoesExclusaoSimples').style.display = 'flex';
     document.getElementById('botoesExclusaoGrupo').style.display = 'none';
     document.getElementById('modalConfirm').style.display = 'flex';
@@ -141,19 +140,40 @@ function renderizar() {
     resSaldo.className = saldo >= 0 ? 'verde' : 'vermelho';
 }
 
-// BACKUP SEGURO PARA KODULAR
-function fazerBackup() {
-    const dados = JSON.stringify(transacoes);
-    document.getElementById('areaBackup').style.display = 'block';
+function abrirJanelaBackup() {
+    const dados = localStorage.getItem('transacoes') || "[]";
     document.getElementById('textoBackup').value = dados;
+    document.getElementById('textoImportar').value = "";
+    document.getElementById('modalBackup').style.display = 'flex';
 }
 
 function copiarBackup() {
-    const copyText = document.getElementById("textoBackup");
-    copyText.select();
-    copyText.setSelectionRange(0, 99999); // Para dispositivos móveis
-    document.execCommand("copy");
-    alert("Código copiado! Guarde no seu WhatsApp.");
+    const campo = document.getElementById("textoBackup");
+    campo.select();
+    campo.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    const btn = document.querySelector('.btn-verde-ok');
+    btn.innerText = "COPIADO!";
+    setTimeout(() => { btn.innerText = "Copiar Código"; }, 2000);
+}
+
+function importarBackup() {
+    const codigo = document.getElementById("textoImportar").value.trim();
+    if (!codigo) return;
+    
+    try {
+        const novosDados = JSON.parse(codigo);
+        if (Array.isArray(novosDados)) {
+            transacoes = novosDados;
+            salvarERenderizar();
+            fecharModal('modalBackup');
+            // Feedback visual em vez de alert
+            document.getElementById('busca').placeholder = "DADOS RESTAURADOS!";
+            setTimeout(() => { document.getElementById('busca').placeholder = "🔍 Buscar lançamento..."; }, 3000);
+        }
+    } catch (e) {
+        document.getElementById('textoImportar').value = "CÓDIGO INVÁLIDO!";
+    }
 }
 
 renderizar();
