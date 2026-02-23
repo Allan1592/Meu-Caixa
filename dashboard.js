@@ -191,19 +191,22 @@ function renderizar() {
     resSaldo.className = saldo >= 0 ? 'verde' : 'vermelho';
 }
 
+// Exportar Backup (Versão para Kodular)
 function fazerBackup() {
     const dados = JSON.stringify(transacoes);
-    const blob = new Blob([dados], {type: 'text/plain'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `caixa_backup.txt`;
-    a.click();
+    // Em vez de tentar baixar, vamos mandar o texto para o título da página
+    // O Kodular vai "ler" o título e salvar o arquivo para você
+    document.title = "backup:" + dados;
+    
+    // Pequeno aviso visual no próprio botão para você saber que clicou
+    const btn = document.querySelector('button[title="Backup"]');
+    btn.innerText = "✅";
+    setTimeout(() => { btn.innerText = "📤"; }, 2000);
 }
 
-// FUNÇÃO SAIR (Sem janelas de erro)
+// Função Sair do App (Versão para Kodular)
 function sairApp() {
-    // Muda o título da página para o Kodular perceber e fechar o app
-    document.title = "fechar_app_agora";
+    // Avisa ao Kodular para fechar
+    document.title = "comando:sair";
 }
 
-renderizar();
