@@ -1,13 +1,11 @@
 let transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
 let idParaDeletar = null;
+let idParaEditar = null;
 let filtroTipoAtual = 'todos';
 
-// Configura data de hoje como padrão
-const campoData = document.getElementById('dataVencimento');
-const campoMes = document.getElementById('mesFiltro');
 const hoje = new Date();
-campoData.valueAsDate = hoje;
-campoMes.value = hoje.toISOString().substring(0, 7);
+document.getElementById('dataVencimento').valueAsDate = hoje;
+document.getElementById('mesFiltro').value = hoje.toISOString().substring(0, 7);
 
 function adicionar() {
     const desc = document.getElementById('descricao').value;
@@ -15,33 +13,33 @@ function adicionar() {
     const tip = document.getElementById('tipo').value;
     const dat = document.getElementById('dataVencimento').value;
 
-    if (!desc || !val || !dat) {
-        alert("Por favor, preencha todos os campos!");
-        return;
-    }
+    if (!desc || !val || !dat) return alert("Preencha tudo!");
 
-    const nova = {
-        id: Date.now(),
-        descricao: desc,
-        valor: parseFloat(val),
-        tipo: tip,
-        data: dat
-    };
-
-    transacoes.push(nova);
-    localStorage.setItem('transacoes', JSON.stringify(transacoes));
-    
+    transacoes.push({ id: Date.now(), descricao: desc, valor: parseFloat(val), tipo: tip, data: dat });
+    salvarERenderizar();
     document.getElementById('descricao').value = '';
     document.getElementById('valor').value = '';
-    renderizar();
 }
 
-function filtrarTipo(tipo, btn) {
-    filtroTipoAtual = tipo;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderizar();
+// FUNÇÃO DO LÁPIS (EDITAR)
+function editar(id) {
+    idParaEditar = id;
+    const item = transacoes.find(t => t.id === id);
+    document.getElementById('editDescricao').value = item.descricao;
+    document.getElementById('editValor').value = item.valor;
+    document.getElementById('editData').value = item.data;
+    document.getElementById('modalEdit').style.display = 'flex';
 }
+
+document.getElementById('btnConfirmarEdicao').onclick = function() {
+    const item = transacoes.find(t => t.id === idParaEditar);
+    item.descricao = document.getElementById('editDescricao').value;
+    item.valor = parseFloat(document.getElementById('editValor').value);
+    item.data = document.getElementById('editData').value;
+    
+    salvarERenderizar();
+    fecharModal('modalEdit');
+};
 
 function deletar(id) {
     idParaDeletar = id;
@@ -50,13 +48,22 @@ function deletar(id) {
 
 document.getElementById('btnConfirmarExclusao').onclick = function() {
     transacoes = transacoes.filter(t => t.id !== idParaDeletar);
-    localStorage.setItem('transacoes', JSON.stringify(transacoes));
+    salvarERenderizar();
     fecharModal('modalConfirm');
-    renderizar();
 };
 
-function fecharModal(id) {
-    document.getElementById(id).style.display = 'none';
+function filtrarTipo(tipo, btn) {
+    filtroTipoAtual = tipo;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderizar();
+}
+
+function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
+
+function salvarERenderizar() {
+    localStorage.setItem('transacoes', JSON.stringify(transacoes));
+    renderizar();
 }
 
 function renderizar() {
@@ -64,36 +71,27 @@ function renderizar() {
     const filtroMes = document.getElementById('mesFiltro').value;
     const busca = document.getElementById('busca').value.toLowerCase();
     lista.innerHTML = '';
-
     let e = 0, s = 0;
 
-    transacoes
-    .filter(t => {
-        const pMes = t.data.includes(filtroMes);
-        const pBusca = t.descricao.toLowerCase().includes(busca);
-        const pTipo = filtroTipoAtual === 'todos' || t.tipo === filtroTipoAtual;
-        return pMes && pBusca && pTipo;
-    })
+    transacoes.filter(t => t.data.includes(filtroMes) && t.descricao.toLowerCase().includes(busca) && (filtroTipoAtual === 'todos' || t.tipo === filtroTipoAtual))
     .sort((a, b) => new Date(b.data) - new Date(a.data))
     .forEach(t => {
         if (t.tipo === 'receita') e += t.valor; else s += t.valor;
-
-        const dataBr = t.data.split('-').reverse().join('/');
         const li = document.createElement('li');
         li.className = `item-lista item-${t.tipo}`;
         li.innerHTML = `
             <div>
                 <strong>${t.descricao}</strong><br>
-                <small>${dataBr}</small><br>
+                <small>${t.data.split('-').reverse().join('/')}</small><br>
                 <span class="${t.tipo === 'receita' ? 'verde' : 'vermelho'}">R$ ${t.valor.toFixed(2)}</span>
             </div>
             <div class="acoes">
+                <span onclick="editar(${t.id})">✏️</span>
                 <span onclick="deletar(${t.id})">🗑️</span>
             </div>
         `;
         lista.appendChild(li);
     });
-
     document.getElementById('resumoEntradas').innerText = `R$ ${e.toFixed(2)}`;
     document.getElementById('resumoSaidas').innerText = `R$ ${s.toFixed(2)}`;
     const saldo = e - s;
@@ -104,15 +102,13 @@ function renderizar() {
 
 function alternarTema() {
     const body = document.body;
-    const atual = body.getAttribute('data-theme');
-    body.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
+    body.setAttribute('data-theme', body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
 }
 
 function fazerBackup() {
     const dados = JSON.stringify(transacoes);
-    const blob = new Blob([dados], {type: 'text/plain'});
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
+    a.href = URL.createObjectURL(new Blob([dados], {type: 'text/plain'}));
     a.download = `backup_caixa.txt`;
     a.click();
 }
