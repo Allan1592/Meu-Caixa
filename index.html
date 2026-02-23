@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Meu Caixa</title>
-    <link rel="stylesheet" href="style.css?v=25">
+    <link rel="stylesheet" href="style.css?v=26">
 </head>
 <body>
     <div class="app">
         <div class="header-novo">
-            <button class="btn-circular" onclick="fazerBackup()" title="Backup">💾</button>
+            <div class="grupo-botoes-topo">
+                <button class="btn-circular" onclick="fazerBackup()" title="Backup">📤</button>
+                <button class="btn-circular" onclick="sairApp()" title="Sair">❌</button>
+            </div>
             <h1>Meu Caixa</h1>
             <button class="btn-circular" onclick="alternarTema()" title="Tema">🌓</button>
         </div>
@@ -85,6 +88,6 @@
         </div>
     </div></div>
 
-    <script src="dashboard.js?v=25"></script>
+    <script src="dashboard.js?v=26"></script>
 </body>
 </html>
