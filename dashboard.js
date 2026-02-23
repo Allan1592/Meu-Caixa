@@ -2,29 +2,35 @@ let transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
 let idParaDeletar = null;
 let filtroTipoAtual = 'todos';
 
-// Configurar data e mês padrão
+// Configura data de hoje como padrão
+const campoData = document.getElementById('dataVencimento');
+const campoMes = document.getElementById('mesFiltro');
 const hoje = new Date();
-document.getElementById('mesFiltro').value = hoje.toISOString().substring(0, 7);
-document.getElementById('dataVencimento').valueAsDate = hoje;
+campoData.valueAsDate = hoje;
+campoMes.value = hoje.toISOString().substring(0, 7);
 
 function adicionar() {
     const desc = document.getElementById('descricao').value;
-    const valor = document.getElementById('valor').value;
-    const tipo = document.getElementById('tipo').value;
-    const data = document.getElementById('dataVencimento').value;
+    const val = document.getElementById('valor').value;
+    const tip = document.getElementById('tipo').value;
+    const dat = document.getElementById('dataVencimento').value;
 
-    if (!desc || !valor || !data) return alert("Preencha todos os campos!");
+    if (!desc || !val || !dat) {
+        alert("Por favor, preencha todos os campos!");
+        return;
+    }
 
     const nova = {
         id: Date.now(),
         descricao: desc,
-        valor: parseFloat(valor),
-        tipo: tipo,
-        data: data
+        valor: parseFloat(val),
+        tipo: tip,
+        data: dat
     };
 
     transacoes.push(nova);
-    salvar();
+    localStorage.setItem('transacoes', JSON.stringify(transacoes));
+    
     document.getElementById('descricao').value = '';
     document.getElementById('valor').value = '';
     renderizar();
@@ -44,17 +50,13 @@ function deletar(id) {
 
 document.getElementById('btnConfirmarExclusao').onclick = function() {
     transacoes = transacoes.filter(t => t.id !== idParaDeletar);
-    salvar();
+    localStorage.setItem('transacoes', JSON.stringify(transacoes));
     fecharModal('modalConfirm');
     renderizar();
 };
 
 function fecharModal(id) {
     document.getElementById(id).style.display = 'none';
-}
-
-function salvar() {
-    localStorage.setItem('transacoes', JSON.stringify(transacoes));
 }
 
 function renderizar() {
@@ -67,22 +69,22 @@ function renderizar() {
 
     transacoes
     .filter(t => {
-        const porMes = t.data.includes(filtroMes);
-        const porBusca = t.descricao.toLowerCase().includes(busca);
-        const porTipo = filtroTipoAtual === 'todos' || t.tipo === filtroTipoAtual;
-        return porMes && porBusca && porTipo;
+        const pMes = t.data.includes(filtroMes);
+        const pBusca = t.descricao.toLowerCase().includes(busca);
+        const pTipo = filtroTipoAtual === 'todos' || t.tipo === filtroTipoAtual;
+        return pMes && pBusca && pTipo;
     })
     .sort((a, b) => new Date(b.data) - new Date(a.data))
     .forEach(t => {
         if (t.tipo === 'receita') e += t.valor; else s += t.valor;
 
+        const dataBr = t.data.split('-').reverse().join('/');
         const li = document.createElement('li');
         li.className = `item-lista item-${t.tipo}`;
-        const dataFormatada = t.data.split('-').reverse().join('/');
         li.innerHTML = `
             <div>
-                <strong>${t.descricao}</strong> <br>
-                <small>${dataFormatada}</small><br>
+                <strong>${t.descricao}</strong><br>
+                <small>${dataBr}</small><br>
                 <span class="${t.tipo === 'receita' ? 'verde' : 'vermelho'}">R$ ${t.valor.toFixed(2)}</span>
             </div>
             <div class="acoes">
@@ -102,17 +104,16 @@ function renderizar() {
 
 function alternarTema() {
     const body = document.body;
-    const tema = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    body.setAttribute('data-theme', tema);
+    const atual = body.getAttribute('data-theme');
+    body.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
 }
 
 function fazerBackup() {
     const dados = JSON.stringify(transacoes);
     const blob = new Blob([dados], {type: 'text/plain'});
-    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `backup_caixa_${new Date().toLocaleDateString()}.txt`;
+    a.href = URL.createObjectURL(blob);
+    a.download = `backup_caixa.txt`;
     a.click();
 }
 
